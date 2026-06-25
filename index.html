@@ -616,6 +616,77 @@
     .hero-stats { flex-direction: column; gap: 1.5rem; padding: 1.5rem; }
     .hero-stat-divider { width: 60px; height: 1px; margin: 0; }
   }
+
+  /* ── PARTÍCULAS ── */
+  #particles-canvas {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ── SÍMBOLO ANIMADO ── */
+  .symbol-ring-3 { animation: rotateSlow 18s linear infinite; transform-origin: center; }
+  .symbol-ring-2 { animation: rotateReverse 12s linear infinite; transform-origin: center; }
+  .symbol-ring-1 { animation: pulse-ring 3s ease-in-out infinite; }
+  .symbol-core   { animation: corePulse 2.5s ease-in-out infinite; }
+  .symbol-shine  { animation: shineOrbit 4s ease-in-out infinite; }
+
+  @keyframes rotateSlow {
+    from { transform: translate(-50%,-50%) rotate(0deg); }
+    to   { transform: translate(-50%,-50%) rotate(360deg); }
+  }
+  @keyframes rotateReverse {
+    from { transform: translate(-50%,-50%) rotate(0deg); }
+    to   { transform: translate(-50%,-50%) rotate(-360deg); }
+  }
+  @keyframes pulse-ring {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(37,99,235,0); }
+    50%       { box-shadow: 0 0 24px 6px rgba(37,99,235,0.4); }
+  }
+  @keyframes corePulse {
+    0%, 100% { transform: translate(-50%,-50%) scale(1); background: #60A5FA; }
+    50%       { transform: translate(-50%,-50%) scale(1.18); background: #93C5FD; }
+  }
+  @keyframes shineOrbit {
+    0%   { top: calc(50% - 18px); left: calc(50% - 10px); opacity: 0.7; }
+    50%  { top: calc(50% - 12px); left: calc(50% + 4px);  opacity: 1; }
+    100% { top: calc(50% - 18px); left: calc(50% - 10px); opacity: 0.7; }
+  }
+
+  /* ── CARDS ELABORADOS ── */
+  .oque-card, .step-card, .modal-card, .preco-card {
+    opacity: 0;
+    transform: translateY(40px) scale(0.97);
+    transition: opacity 0.55s cubic-bezier(.22,.68,0,1.2),
+                transform 0.55s cubic-bezier(.22,.68,0,1.2),
+                box-shadow 0.25s, border-color 0.25s;
+  }
+  .oque-card.card-visible, .step-card.card-visible,
+  .modal-card.card-visible, .preco-card.card-visible {
+    opacity: 1; transform: translateY(0) scale(1);
+  }
+
+  /* hero-stat card entrance */
+  .hero-stat {
+    opacity: 0; transform: translateY(20px);
+    animation: statIn 0.6s cubic-bezier(.22,.68,0,1.2) forwards;
+  }
+  .hero-stat:nth-child(1) { animation-delay: 0.5s; }
+  .hero-stat:nth-child(3) { animation-delay: 0.7s; }
+  .hero-stat:nth-child(5) { animation-delay: 0.9s; }
+  @keyframes statIn {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* hero text entrance */
+  .hero-logo-wrap { animation: fadeUp 0.7s ease forwards; }
+  .hero-text      { animation: fadeUp 0.7s 0.2s ease both; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* counter number highlight */
+  .count-num { display: inline-block; }
 </style>
 </head>
 <body>
@@ -636,6 +707,7 @@
 
 <!-- HERO -->
 <section id="hero">
+  <canvas id="particles-canvas"></canvas>
   <div class="hero-glow hero-glow-1"></div>
   <div class="hero-glow hero-glow-2"></div>
 
@@ -940,21 +1012,128 @@
 </footer>
 
 <script>
-  // Scroll reveal
-  const reveals = document.querySelectorAll('.reveal');
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry, i) => {
-      if (entry.isIntersecting) entry.target.classList.add('visible');
-    });
-  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-  reveals.forEach(el => observer.observe(el));
+  /* ══ PARTÍCULAS ══ */
+  (function() {
+    const canvas = document.getElementById('particles-canvas');
+    const ctx = canvas.getContext('2d');
+    let W, H, particles = [];
 
-  // Stagger cards
-  document.querySelectorAll('.oque-card, .step-card, .modal-card').forEach((el, i) => {
-    el.style.transitionDelay = (i % 3) * 0.08 + 's';
+    function resize() {
+      W = canvas.width  = canvas.offsetWidth;
+      H = canvas.height = canvas.offsetHeight;
+    }
+
+    function Particle() {
+      this.x = Math.random() * W;
+      this.y = Math.random() * H;
+      this.r = Math.random() * 1.5 + 0.3;
+      this.vx = (Math.random() - 0.5) * 0.35;
+      this.vy = (Math.random() - 0.5) * 0.35;
+      this.alpha = Math.random() * 0.5 + 0.1;
+    }
+
+    function init() {
+      resize();
+      particles = Array.from({length: 90}, () => new Particle());
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      particles.forEach(p => {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+        if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(147,197,253,${p.alpha})`;
+        ctx.fill();
+      });
+      // draw lines between close particles
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          if (dist < 100) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = `rgba(37,99,235,${0.12 * (1 - dist/100)})`;
+            ctx.lineWidth = 0.6;
+            ctx.stroke();
+          }
+        }
+      }
+      requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('resize', () => { resize(); });
+    init(); draw();
+  })();
+
+  /* ══ SCROLL REVEAL (texto) ══ */
+  const reveals = document.querySelectorAll('.reveal');
+  const revObs = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+  reveals.forEach(el => revObs.observe(el));
+
+  /* ══ CARDS COM STAGGER ══ */
+  const cardSel = '.oque-card, .step-card, .modal-card, .preco-card';
+  const cardObs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('card-visible'), e.target._delay || 0);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll(cardSel).forEach((el, i) => {
+    el._delay = (i % 3) * 100;
+    cardObs.observe(el);
   });
 
-  // Form
+  /* ══ CONTADOR ANIMADO ══ */
+  function animateCount(el, target, suffix, duration) {
+    let start = 0;
+    const step = (timestamp) => {
+      if (!start) start = timestamp;
+      const progress = Math.min((timestamp - start) / duration, 1);
+      const ease = 1 - Math.pow(1 - progress, 3);
+      el.textContent = Math.floor(ease * target) + suffix;
+      if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+
+  // Counter targets in stats section
+  const counterMap = [
+    { selector: '.hero-stat:nth-child(1) .hero-stat-num span', target: null }, // A1 — skip
+  ];
+
+  // Animate price values on scroll
+  const priceObs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting && !e.target._counted) {
+        e.target._counted = true;
+        const val = parseInt(e.target.dataset.count);
+        if (!isNaN(val)) animateCount(e.target, val, '', 1200);
+      }
+    });
+  }, { threshold: 0.5 });
+
+  // Tag price elements for counter animation
+  document.querySelectorAll('.preco-valor').forEach(el => {
+    const small = el.querySelector('small');
+    const text = el.textContent.replace('R$','').trim();
+    const num = parseInt(text);
+    if (!isNaN(num)) {
+      el.innerHTML = `<small>R$</small> <span class="count-num" data-count="${num}">${num}</span>`;
+      priceObs.observe(el.querySelector('.count-num'));
+    }
+  });
+
+  /* ══ FORM ══ */
   function submitForm() {
     const nome = document.getElementById('f-nome').value;
     const email = document.getElementById('f-email').value;
@@ -967,7 +1146,7 @@
     document.getElementById('form-success').style.display = 'block';
   }
 
-  // Nav highlight
+  /* ══ NAV HIGHLIGHT ══ */
   const sections = document.querySelectorAll('section[id]');
   const navLinks = document.querySelectorAll('.nav-links a[href^="#"]');
   window.addEventListener('scroll', () => {
