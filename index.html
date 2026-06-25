@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nexo Certificados — e-CPF e e-CNPJ</title>
+<style>
+  :root {
+    --noite:    #0F1B2D;
+    --profundo: #1E3A5F;
+    --nexo:     #2563EB;
+    --vibrante: #3B82F6;
+    --claro:    #93C5FD;
+    --cinza:    #CBD5E1;
+    --fundo:    #F1F5F9;
+    --branco:   #FFFFFF;
+    --texto:    #1E293B;
+    --muted:    #64748B;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; overflow-x: hidden; }
+
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: var(--branco);
+    color: var(--texto);
+    line-height: 1.6;
+    overflow-x: hidden;
+    width: 100%;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(15,27,45,0.96);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding: 0 2rem;
+    height: 64px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .nav-logo {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 1.3rem; font-weight: 800; color: var(--branco);
+    text-decoration: none; letter-spacing: -0.5px;
+  }
+
+  .nav-logo-badge {
+    font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em;
+    background: rgba(37,99,235,0.25);
+    border: 1px solid rgba(59,130,246,0.4);
+    color: var(--claro);
+    padding: 2px 8px; border-radius: 999px;
+    text-transform: uppercase;
+  }
+
+  .nav-links {
+    display: flex; align-items: center; gap: 2rem;
+    list-style: none;
+  }
+
+  .nav-links a {
+    color: var(--cinza); text-decoration: none;
+    font-size: 0.9rem; font-weight: 500;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--branco); }
+
+  .btn-nav {
+    background: var(--nexo); color: var(--branco);
+    border: none; padding: 0.5rem 1.2rem;
+    border-radius: 8px; font-size: 0.875rem; font-weight: 600;
+    cursor: pointer; text-decoration: none;
+    transition: background 0.2s, transform 0.1s;
+  }
+
+  .btn-nav:hover { background: var(--vibrante); transform: translateY(-1px); }
+
+  /* ── HERO ── */
+  #hero {
+    min-height: 100vh;
+    background: var(--noite);
+    display: flex; align-items: center;
+    position: relative; overflow: hidden;
+    padding-top: 64px;
+  }
+
+  .hero-glow {
+    position: absolute; border-radius: 50%; pointer-events: none;
+  }
+
+  .hero-glow-1 {
+    width: 700px; height: 700px;
+    background: radial-gradient(circle, rgba(37,99,235,0.15) 0%, transparent 70%);
+    top: -200px; right: -200px;
+  }
+
+  .hero-glow-2 {
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(59,130,246,0.1) 0%, transparent 70%);
+    bottom: -100px; left: -100px;
+  }
+
+  .hero-inner {
+    max-width: 1000px; margin: 0 auto; padding: 3rem 2rem 4rem;
+    display: flex; flex-direction: column; align-items: center;
+    text-align: center;
+    position: relative; z-index: 1; width: 100%;
+  }
+
+  /* Symbol */
+  .hero-logo-wrap {
+    display: flex; flex-direction: column; align-items: center; gap: 1rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .hero-symbol {
+    width: 120px; height: 120px;
+    position: relative; display: flex; align-items: center; justify-content: center;
+  }
+
+  .symbol-ring {
+    position: absolute; border-radius: 50%;
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+  }
+
+  .symbol-ring-3 {
+    width: 120px; height: 120px;
+    background: radial-gradient(circle at 40% 35%, #1E3A5F, #0F1B2D);
+    border: 1px solid rgba(37,99,235,0.25);
+  }
+
+  .symbol-ring-2 {
+    width: 86px; height: 86px;
+    background: #1E3A5F;
+    border: 1.5px solid rgba(37,99,235,0.4);
+  }
+
+  .symbol-ring-1 {
+    width: 58px; height: 58px;
+    background: #2563EB;
+    border: 2px solid #3B82F6;
+  }
+
+  .symbol-core {
+    position: absolute;
+    width: 28px; height: 28px; border-radius: 50%;
+    background: #60A5FA;
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+  }
+
+  .symbol-shine {
+    position: absolute;
+    width: 10px; height: 10px; border-radius: 50%;
+    background: rgba(255,255,255,0.7);
+    top: calc(50% - 18px); left: calc(50% - 10px);
+  }
+
+  /* Shield overlay on symbol */
+
+  .hero-brand {
+    font-size: 2rem; font-weight: 800; color: var(--branco);
+    letter-spacing: -1px; line-height: 1;
+  }
+
+  .hero-brand-sub {
+    font-size: 0.9rem; font-weight: 600; color: var(--claro);
+    letter-spacing: 0.05em;
+  }
+
+  /* Text */
+  .hero-text { max-width: 680px; }
+
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(37,99,235,0.15);
+    border: 1px solid rgba(59,130,246,0.3);
+    color: var(--claro);
+    font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em;
+    padding: 0.35rem 0.9rem; border-radius: 999px;
+    margin-bottom: 1.25rem; text-transform: uppercase;
+  }
+
+  .hero-eyebrow span {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--vibrante); animation: pulse 2s infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  .hero-title {
+    font-size: clamp(2.4rem, 5vw, 4rem);
+    font-weight: 800; line-height: 1.08;
+    color: var(--branco);
+    letter-spacing: -2px;
+    margin-bottom: 1.25rem;
+  }
+
+  .hero-title em { font-style: normal; color: var(--vibrante); }
+
+  .hero-sub {
+    font-size: 1.1rem; color: var(--cinza);
+    line-height: 1.7; margin-bottom: 2rem;
+    max-width: 520px; margin-left: auto; margin-right: auto;
+  }
+
+  .hero-actions {
+    display: flex; gap: 1rem; flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .btn-primary {
+    background: var(--nexo); color: var(--branco);
+    padding: 0.9rem 2rem; border-radius: 10px;
+    font-size: 1rem; font-weight: 600;
+    text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    box-shadow: 0 4px 24px rgba(37,99,235,0.4);
+  }
+
+  .btn-primary:hover {
+    background: var(--vibrante); transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(37,99,235,0.5);
+  }
+
+  .btn-secondary {
+    background: transparent; color: var(--cinza);
+    padding: 0.9rem 2rem; border-radius: 10px;
+    font-size: 1rem; font-weight: 600;
+    text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+    border: 1px solid rgba(255,255,255,0.15);
+    transition: border-color 0.2s, color 0.2s, transform 0.15s;
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--vibrante); color: var(--branco); transform: translateY(-2px);
+  }
+
+  /* Stats */
+  .hero-stats {
+    display: flex; align-items: stretch;
+    gap: 1rem;
+    margin-top: 3rem;
+    width: 100%; max-width: 720px;
+  }
+
+  .hero-stat {
+    flex: 1; text-align: center;
+    background: rgba(30,58,95,0.6);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 14px;
+    padding: 1.4rem 1rem;
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  .hero-stat:hover {
+    border-color: rgba(59,130,246,0.35);
+    background: rgba(37,99,235,0.1);
+  }
+
+  .hero-stat-icon { font-size: 1.4rem; margin-bottom: 0.6rem; }
+
+  .hero-stat-num {
+    font-size: 1.15rem; font-weight: 800; color: var(--branco);
+    letter-spacing: -0.3px; line-height: 1.2; margin-bottom: 0.3rem;
+  }
+
+  .hero-stat-num span { color: var(--vibrante); }
+  .hero-stat-label { font-size: 0.75rem; color: var(--cinza); line-height: 1.4; }
+
+  .hero-stat-divider { display: none; }
+
+  /* ── SEÇÕES GENÉRICAS ── */
+  section { padding: 6rem 2rem; }
+  .section-inner { max-width: 1100px; margin: 0 auto; }
+
+  .section-eyebrow {
+    font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--nexo); margin-bottom: 0.75rem;
+  }
+
+  .section-title {
+    font-size: clamp(1.8rem, 3vw, 2.5rem);
+    font-weight: 800; letter-spacing: -1px;
+    color: var(--texto); margin-bottom: 1rem; line-height: 1.15;
+  }
+
+  .section-sub {
+    font-size: 1.05rem; color: var(--muted); max-width: 560px;
+    line-height: 1.7; margin-bottom: 3rem;
+  }
+
+  /* ── O QUE É ── */
+  #oque { background: var(--fundo); }
+
+  .oque-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .oque-card {
+    background: var(--branco);
+    border: 1px solid #E2E8F0;
+    border-radius: 14px; padding: 1.75rem;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  }
+
+  .oque-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(15,27,45,0.1);
+    border-color: var(--vibrante);
+  }
+
+  .oque-icon {
+    font-size: 2rem; margin-bottom: 1rem; display: block;
+  }
+
+  .oque-card h3 { font-size: 1.1rem; font-weight: 700; color: var(--texto); margin-bottom: 0.5rem; }
+  .oque-card p { font-size: 0.9rem; color: var(--muted); line-height: 1.7; }
+
+  /* ── COMO FUNCIONA ── */
+  #como { background: var(--noite); }
+  #como .section-title { color: var(--branco); }
+  #como .section-sub { color: var(--cinza); }
+  #como .section-eyebrow { color: var(--vibrante); }
+
+  .steps-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem; position: relative;
+  }
+
+  .step-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px; padding: 1.75rem;
+    text-align: center;
+    transition: background 0.2s, border-color 0.2s;
+  }
+
+  .step-card:hover {
+    background: rgba(37,99,235,0.08);
+    border-color: rgba(59,130,246,0.3);
+  }
+
+  .step-num {
+    width: 48px; height: 48px; border-radius: 50%;
+    background: var(--nexo);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; font-weight: 800; color: var(--branco);
+    margin: 0 auto 1rem;
+  }
+
+  .step-card h3 { font-size: 1rem; font-weight: 700; color: var(--branco); margin-bottom: 0.5rem; }
+  .step-card p { font-size: 0.875rem; color: var(--cinza); line-height: 1.6; }
+
+  .step-icon { font-size: 1.5rem; margin-bottom: 0.75rem; display: block; }
+
+  /* ── PREÇOS ── */
+  #precos { background: var(--branco); }
+
+  .precos-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem; max-width: 720px; margin: 0 auto;
+  }
+
+  .preco-card {
+    border: 2px solid #E2E8F0;
+    border-radius: 20px; padding: 2.5rem 2rem;
+    text-align: center; position: relative; overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  }
+
+  .preco-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 24px 60px rgba(15,27,45,0.12);
+  }
+
+  .preco-card.destaque {
+    border-color: var(--nexo);
+    background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+  }
+
+  .preco-badge {
+    position: absolute; top: 1.25rem; right: 1.25rem;
+    background: var(--nexo); color: var(--branco);
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em;
+    padding: 3px 10px; border-radius: 999px; text-transform: uppercase;
+  }
+
+  .preco-tipo {
+    font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--nexo); margin-bottom: 0.5rem;
+  }
+
+  .preco-nome {
+    font-size: 1.5rem; font-weight: 800; color: var(--texto);
+    margin-bottom: 0.25rem; letter-spacing: -0.5px;
+  }
+
+  .preco-sub {
+    font-size: 0.85rem; color: var(--muted); margin-bottom: 1.75rem;
+  }
+
+  .preco-valor {
+    font-size: 3rem; font-weight: 800; color: var(--nexo);
+    letter-spacing: -2px; line-height: 1;
+    margin-bottom: 0.25rem;
+  }
+
+  .preco-valor small {
+    font-size: 1.2rem; font-weight: 600; vertical-align: super;
+    letter-spacing: 0;
+  }
+
+  .preco-periodo {
+    font-size: 0.82rem; color: var(--muted); margin-bottom: 2rem;
+  }
+
+  .preco-features {
+    list-style: none; text-align: left;
+    display: flex; flex-direction: column; gap: 0.65rem;
+    margin-bottom: 2rem;
+  }
+
+  .preco-features li {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 0.9rem; color: var(--texto);
+  }
+
+  .preco-features li::before {
+    content: '✓';
+    width: 20px; height: 20px; border-radius: 50%;
+    background: #DBEAFE; color: var(--nexo);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem; font-weight: 700; flex-shrink: 0;
+  }
+
+  .btn-preco {
+    width: 100%;
+    background: var(--nexo); color: var(--branco);
+    border: none; border-radius: 10px;
+    padding: 0.9rem;
+    font-size: 0.95rem; font-weight: 700;
+    cursor: pointer; font-family: inherit;
+    text-decoration: none; display: block; text-align: center;
+    transition: background 0.2s, transform 0.15s;
+  }
+
+  .btn-preco:hover { background: var(--vibrante); transform: translateY(-1px); }
+
+  .preco-nota {
+    font-size: 0.8rem; color: var(--muted); margin-top: 0.75rem; text-align: center;
+  }
+
+  /* ── MODALIDADES ── */
+  #modalidades { background: var(--fundo); }
+
+  .modal-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .modal-card {
+    background: var(--branco);
+    border: 1px solid #E2E8F0;
+    border-radius: 16px; padding: 2rem;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  }
+
+  .modal-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 48px rgba(15,27,45,0.1);
+    border-color: var(--vibrante);
+  }
+
+  .modal-icon {
+    width: 52px; height: 52px; border-radius: 12px;
+    background: #EFF6FF;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; margin-bottom: 1.25rem;
+  }
+
+  .modal-card h3 { font-size: 1.1rem; font-weight: 700; color: var(--texto); margin-bottom: 0.5rem; }
+  .modal-card p { font-size: 0.9rem; color: var(--muted); line-height: 1.7; }
+
+  .modal-tag {
+    display: inline-block; margin-top: 1rem;
+    font-size: 0.72rem; font-weight: 700;
+    background: #EFF6FF; color: #1E40AF;
+    padding: 3px 10px; border-radius: 999px;
+  }
+
+  /* ── CONTATO ── */
+  #contato { background: var(--noite); }
+
+  .cta-inner {
+    max-width: 960px; margin: 0 auto;
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 4rem; align-items: start;
+  }
+
+  .cta-left .section-title { color: var(--branco); }
+  .cta-left .section-sub { color: var(--cinza); margin-bottom: 0; }
+  .cta-left .section-eyebrow { color: var(--vibrante); }
+
+  .cta-checks { margin-top: 1.75rem; display: flex; flex-direction: column; gap: 0.75rem; }
+
+  .cta-check {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 0.9rem; color: var(--cinza);
+  }
+
+  .cta-check-dot {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: rgba(37,99,235,0.2);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; font-size: 0.7rem; color: var(--vibrante);
+  }
+
+  .cta-form {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 18px; padding: 2rem;
+  }
+
+  .cta-form h3 { font-size: 1.1rem; font-weight: 700; color: var(--branco); margin-bottom: 1.5rem; }
+
+  .form-group { margin-bottom: 1rem; }
+
+  .form-group label {
+    display: block; font-size: 0.8rem; font-weight: 600;
+    color: var(--cinza); margin-bottom: 0.4rem;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    width: 100%;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 9px; padding: 0.7rem 1rem;
+    color: var(--branco); font-size: 0.9rem; font-family: inherit;
+    transition: border-color 0.2s; outline: none;
+  }
+
+  .form-group input::placeholder,
+  .form-group textarea::placeholder { color: rgba(255,255,255,0.25); }
+
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    border-color: var(--vibrante);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+  }
+
+  .form-group select option { background: var(--profundo); color: var(--branco); }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+  .btn-submit {
+    width: 100%; background: var(--nexo); color: var(--branco);
+    border: none; border-radius: 10px; padding: 0.9rem;
+    font-size: 0.95rem; font-weight: 700;
+    cursor: pointer; font-family: inherit;
+    transition: background 0.2s, transform 0.15s; margin-top: 0.5rem;
+  }
+
+  .btn-submit:hover { background: var(--vibrante); transform: translateY(-1px); }
+  .form-note { font-size: 0.75rem; color: rgba(255,255,255,0.3); text-align: center; margin-top: 0.75rem; }
+
+  .form-success { display: none; text-align: center; padding: 2rem; color: var(--branco); }
+  .form-success-icon { font-size: 3rem; margin-bottom: 1rem; }
+  .form-success h4 { font-size: 1.2rem; margin-bottom: 0.5rem; }
+  .form-success p { font-size: 0.9rem; color: var(--cinza); }
+
+  /* ── FOOTER ── */
+  footer {
+    background: rgba(15,27,45,0.98);
+    border-top: 1px solid rgba(255,255,255,0.07);
+    padding: 2rem; text-align: center;
+  }
+
+  .footer-logo { font-size: 1.2rem; font-weight: 800; color: var(--branco); letter-spacing: -0.5px; margin-bottom: 0.25rem; }
+  .footer-logo span { color: var(--vibrante); }
+  .footer-tagline { font-size: 0.8rem; color: var(--muted); margin-bottom: 1.25rem; }
+
+  .footer-links {
+    display: flex; gap: 1.5rem; justify-content: center;
+    flex-wrap: wrap; list-style: none; margin-bottom: 1.25rem;
+  }
+
+  .footer-links a { font-size: 0.82rem; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+  .footer-links a:hover { color: var(--branco); }
+
+  .footer-contact { font-size: 0.82rem; color: var(--muted); margin-bottom: 1.25rem; }
+  .footer-contact a { color: var(--claro); text-decoration: none; }
+  .footer-copy { font-size: 0.75rem; color: rgba(255,255,255,0.2); }
+
+  /* ── REVEAL ── */
+  .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* ── MOBILE ── */
+  @media (max-width: 768px) {
+    .cta-inner { grid-template-columns: 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+    .nav-links { display: none; }
+    .hero-stats { flex-direction: column; gap: 1.5rem; padding: 1.5rem; }
+    .hero-stat-divider { width: 60px; height: 1px; margin: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">
+    nexo<span style="color:var(--vibrante);margin:0 2px;">●</span>
+    <span class="nav-logo-badge">Certificados</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#oque">O que é</a></li>
+    <li><a href="#como">Como funciona</a></li>
+    <li><a href="#precos">Preços</a></li>
+    <li><a href="#contato" class="btn-nav">Solicitar agora</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-glow hero-glow-1"></div>
+  <div class="hero-glow hero-glow-2"></div>
+
+  <div class="hero-inner">
+    <div class="hero-logo-wrap">
+      <div class="hero-symbol">
+        <div class="symbol-ring symbol-ring-3"></div>
+        <div class="symbol-ring symbol-ring-2"></div>
+        <div class="symbol-ring symbol-ring-1"></div>
+        <div class="symbol-core"></div>
+        <div class="symbol-shine"></div>
+        
+      </div>
+      <div class="hero-brand">nexo<span style="color:var(--vibrante);">●</span></div>
+      <div class="hero-brand-sub">Certificados Digitais</div>
+    </div>
+
+    <div class="hero-text">
+      <div class="hero-eyebrow">
+        <span></span> e-CPF e e-CNPJ · Emissão rápida e segura
+      </div>
+      <h1 class="hero-title">
+        Seu certificado digital<br>
+        <em>sem complicação.</em>
+      </h1>
+      <p class="hero-sub">
+        Emitimos e-CPF e e-CNPJ A1 de forma presencial ou por videoconferência. Processo simples, rápido e 100% seguro para sua empresa.
+      </p>
+      <div class="hero-actions">
+        <a href="#contato" class="btn-primary">
+          Solicitar certificado
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <a href="#precos" class="btn-secondary">Ver preços</a>
+      </div>
+    </div>
+
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="hero-stat-icon">☁️</div>
+        <div class="hero-stat-num"><span>A1</span></div>
+        <div class="hero-stat-label">Certificado em nuvem, sem token físico</div>
+      </div>
+      <div class="hero-stat-divider"></div>
+      <div class="hero-stat">
+        <div class="hero-stat-icon">🌐</div>
+        <div class="hero-stat-num"><span>Online</span> ou <span>presencial</span></div>
+        <div class="hero-stat-label">Você escolhe como emitir</div>
+      </div>
+      <div class="hero-stat-divider"></div>
+      <div class="hero-stat">
+        <div class="hero-stat-icon">📅</div>
+        <div class="hero-stat-num"><span>1 ano</span></div>
+        <div class="hero-stat-label">de validade com renovação facilitada</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- O QUE É -->
+<section id="oque">
+  <div class="section-inner">
+    <p class="section-eyebrow reveal">O que é</p>
+    <h2 class="section-title reveal">Certificado Digital — para que serve?</h2>
+    <p class="section-sub reveal">O certificado digital é a sua assinatura eletrônica com validade jurídica. Obrigatório para diversas obrigações fiscais e essencial no dia a dia contábil.</p>
+
+    <div class="oque-grid">
+      <div class="oque-card reveal">
+        <span class="oque-icon">🏛️</span>
+        <h3>e-CAC e Receita Federal</h3>
+        <p>Acesse o portal da Receita Federal, consulte situação fiscal, entregue declarações e resolva pendências com o governo.</p>
+      </div>
+      <div class="oque-card reveal">
+        <span class="oque-icon">📄</span>
+        <h3>Emissão de NF-e e NFS-e</h3>
+        <p>Emita notas fiscais eletrônicas de produtos e serviços com validade jurídica e segurança total nas transações.</p>
+      </div>
+      <div class="oque-card reveal">
+        <span class="oque-icon">🤝</span>
+        <h3>Contratos e assinaturas</h3>
+        <p>Assine contratos, procurações e documentos digitais com validade legal, sem precisar de reconhecimento em cartório.</p>
+      </div>
+      <div class="oque-card reveal">
+        <span class="oque-icon">🏢</span>
+        <h3>eSocial e obrigações</h3>
+        <p>Envie informações ao eSocial, SPED, EFD e demais obrigações acessórias exigidas pelo governo federal.</p>
+      </div>
+      <div class="oque-card reveal">
+        <span class="oque-icon">🏦</span>
+        <h3>Internet Banking PJ</h3>
+        <p>Acesse sistemas bancários empresariais, realize transações e use o certificado como autenticação segura.</p>
+      </div>
+      <div class="oque-card reveal">
+        <span class="oque-icon">✅</span>
+        <h3>Validade jurídica total</h3>
+        <p>Reconhecido pela ICP-Brasil, o certificado A1 tem a mesma validade de uma assinatura presencial em qualquer documento.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMO FUNCIONA -->
+<section id="como">
+  <div class="section-inner">
+    <p class="section-eyebrow reveal">Como funciona</p>
+    <h2 class="section-title reveal">Emissão simples em poucos passos</h2>
+    <p class="section-sub reveal">Presencial ou por videoconferência — escolha o que for mais cômodo para você.</p>
+
+    <div class="steps-grid">
+      <div class="step-card reveal">
+        <span class="step-icon">📋</span>
+        <div class="step-num">01</div>
+        <h3>Solicite</h3>
+        <p>Preencha o formulário ou entre em contato pelo WhatsApp. Nos diga qual certificado precisa.</p>
+      </div>
+      <div class="step-card reveal">
+        <span class="step-icon">📅</span>
+        <div class="step-num">02</div>
+        <h3>Agende</h3>
+        <p>Escolha presencial no escritório ou por videoconferência. Definimos data e horário convenientes.</p>
+      </div>
+      <div class="step-card reveal">
+        <span class="step-icon">🪪</span>
+        <div class="step-num">03</div>
+        <h3>Validação</h3>
+        <p>Apresente seu documento com foto. A validação é rápida — em média 15 minutos.</p>
+      </div>
+      <div class="step-card reveal">
+        <span class="step-icon">🔐</span>
+        <div class="step-num">04</div>
+        <h3>Pronto!</h3>
+        <p>Seu certificado A1 é instalado na hora. Você já sai usando — sem espera, sem complicação.</p>
+      </div>
+    </div>
+
+    <!-- Modalidades -->
+    <div style="margin-top: 3rem;">
+      <div class="modal-grid">
+        <div class="modal-card reveal">
+          <div class="modal-icon">🏢</div>
+          <h3>Emissão Presencial</h3>
+          <p>Venha até nosso escritório em Curitiba. Atendimento personalizado, rápido e seguro. Saia com o certificado instalado na hora.</p>
+          <span class="modal-tag">Curitiba — PR</span>
+        </div>
+        <div class="modal-card reveal">
+          <div class="modal-icon">💻</div>
+          <h3>Emissão por Videoconferência</h3>
+          <p>Não precisa sair de casa ou do escritório. A validação é feita 100% online por videochamada, com a mesma segurança e validade jurídica.</p>
+          <span class="modal-tag">Qualquer lugar do Brasil</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PREÇOS -->
+<section id="precos">
+  <div class="section-inner">
+    <p class="section-eyebrow reveal" style="text-align:center;">Preços</p>
+    <h2 class="section-title reveal" style="text-align:center;">Simples e transparente</h2>
+    <p class="section-sub reveal" style="text-align:center; margin-left:auto; margin-right:auto;">Sem taxas ocultas. O valor já inclui a emissão completa, presencial ou online.</p>
+
+    <div class="precos-grid">
+      <!-- e-CPF -->
+      <div class="preco-card reveal">
+        <div class="preco-tipo">Pessoa Física</div>
+        <div class="preco-nome">e-CPF A1</div>
+        <div class="preco-sub">Certificado para pessoa física</div>
+        <div class="preco-valor"><small>R$</small> 159</div>
+        <div class="preco-periodo">validade de 1 ano</div>
+        <ul class="preco-features">
+          <li>Certificado ICP-Brasil</li>
+          <li>Instalação imediata</li>
+          <li>Presencial ou videoconferência</li>
+          <li>Acesso ao e-CAC</li>
+          <li>Assinatura de documentos</li>
+          <li>Suporte pós-emissão</li>
+        </ul>
+        <a href="#contato" class="btn-preco">Solicitar e-CPF</a>
+        <p class="preco-nota">Documento com foto obrigatório</p>
+      </div>
+
+      <!-- e-CNPJ -->
+      <div class="preco-card destaque reveal">
+        <div class="preco-badge">Mais solicitado</div>
+        <div class="preco-tipo">Pessoa Jurídica</div>
+        <div class="preco-nome">e-CNPJ A1</div>
+        <div class="preco-sub">Certificado para empresas</div>
+        <div class="preco-valor"><small>R$</small> 169</div>
+        <div class="preco-periodo">validade de 1 ano</div>
+        <ul class="preco-features">
+          <li>Certificado ICP-Brasil</li>
+          <li>Instalação imediata</li>
+          <li>Presencial ou videoconferência</li>
+          <li>Acesso ao e-CAC PJ</li>
+          <li>Emissão de NF-e e NFS-e</li>
+          <li>eSocial e obrigações acessórias</li>
+          <li>Suporte pós-emissão</li>
+        </ul>
+        <a href="#contato" class="btn-preco">Solicitar e-CNPJ</a>
+        <p class="preco-nota">Contrato social e documento com foto</p>
+      </div>
+    </div>
+
+    <p style="text-align:center; font-size:0.85rem; color:var(--muted); margin-top:2rem;">
+      💡 Precisa de mais de um certificado? <a href="#contato" style="color:var(--nexo); text-decoration:none; font-weight:600;">Entre em contato para condições especiais.</a>
+    </p>
+  </div>
+</section>
+
+<!-- CONTATO -->
+<section id="contato">
+  <div class="cta-inner">
+    <div class="cta-left">
+      <p class="section-eyebrow reveal">Solicite agora</p>
+      <h2 class="section-title reveal">Pronto para emitir seu certificado?</h2>
+      <p class="section-sub reveal">Preencha o formulário e entraremos em contato em até 24h para agendar sua emissão.</p>
+
+      <div class="cta-checks reveal">
+        <div class="cta-check"><div class="cta-check-dot">✓</div> Emissão presencial ou online</div>
+        <div class="cta-check"><div class="cta-check-dot">✓</div> Certificado instalado na hora</div>
+        <div class="cta-check"><div class="cta-check-dot">✓</div> Suporte pós-emissão incluso</div>
+        <div class="cta-check"><div class="cta-check-dot">✓</div> Validade ICP-Brasil</div>
+      </div>
+
+      <div style="margin-top:2.5rem; padding-top:2rem; border-top:1px solid rgba(255,255,255,0.08);">
+        <p style="font-size:0.8rem; color:#64748B; margin-bottom:0.75rem; text-transform:uppercase; letter-spacing:0.05em; font-weight:600;">Contato direto</p>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <a href="tel:+5541988358803" style="color:#93C5FD; text-decoration:none; font-size:0.95rem;">📞 (41) 98835-8803</a>
+          <a href="mailto:nexo.contabil@email.com.br" style="color:#93C5FD; text-decoration:none; font-size:0.95rem;">✉️ nexo.contabil@email.com.br</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="cta-form reveal">
+      <div id="form-content">
+        <h3>Solicitar certificado</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nome completo</label>
+            <input type="text" placeholder="Seu nome" id="f-nome">
+          </div>
+          <div class="form-group">
+            <label>WhatsApp</label>
+            <input type="tel" placeholder="(41) 9 0000-0000" id="f-tel">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>E-mail</label>
+          <input type="email" placeholder="seuemail@exemplo.com.br" id="f-email">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Tipo de certificado</label>
+            <select id="f-tipo">
+              <option value="">Selecione</option>
+              <option>e-CPF A1 — R$ 159,00</option>
+              <option>e-CNPJ A1 — R$ 169,00</option>
+              <option>e-CPF + e-CNPJ (os dois)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Modalidade</label>
+            <select id="f-modal">
+              <option value="">Selecione</option>
+              <option>Presencial — Curitiba</option>
+              <option>Videoconferência (online)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Observações (opcional)</label>
+          <textarea placeholder="Alguma dúvida ou informação adicional?" rows="3" id="f-obs" style="resize:none;"></textarea>
+        </div>
+        <button class="btn-submit" onclick="submitForm()">Solicitar certificado →</button>
+        <p class="form-note">Retorno em até 24h úteis. Sem compromisso.</p>
+      </div>
+      <div class="form-success" id="form-success">
+        <div class="form-success-icon">✅</div>
+        <h4>Solicitação enviada!</h4>
+        <p>Em breve entraremos em contato para agendar sua emissão. Fique atento ao WhatsApp e e-mail.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">nexo <span>●</span> Certificados</div>
+  <p class="footer-tagline">Emissão de e-CPF e e-CNPJ A1 — presencial e por videoconferência</p>
+  <ul class="footer-links">
+    <li><a href="#oque">O que é</a></li>
+    <li><a href="#como">Como funciona</a></li>
+    <li><a href="#precos">Preços</a></li>
+    <li><a href="#contato">Solicitar</a></li>
+  </ul>
+  <p class="footer-contact">
+    <a href="tel:+5541988358803">(41) 98835-8803</a> ·
+    <a href="mailto:nexo.contabil@email.com.br">nexo.contabil@email.com.br</a>
+  </p>
+  <p class="footer-copy">© 2026 Nexo — Todos os direitos reservados.</p>
+</footer>
+
+<script>
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) entry.target.classList.add('visible');
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+  reveals.forEach(el => observer.observe(el));
+
+  // Stagger cards
+  document.querySelectorAll('.oque-card, .step-card, .modal-card').forEach((el, i) => {
+    el.style.transitionDelay = (i % 3) * 0.08 + 's';
+  });
+
+  // Form
+  function submitForm() {
+    const nome = document.getElementById('f-nome').value;
+    const email = document.getElementById('f-email').value;
+    const tipo = document.getElementById('f-tipo').value;
+    if (!nome || !email || !tipo) {
+      alert('Por favor, preencha nome, e-mail e tipo de certificado.');
+      return;
+    }
+    document.getElementById('form-content').style.display = 'none';
+    document.getElementById('form-success').style.display = 'block';
+  }
+
+  // Nav highlight
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-links a[href^="#"]');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) current = s.id; });
+    navLinks.forEach(a => { a.style.color = a.getAttribute('href') === '#' + current ? '#FFFFFF' : ''; });
+  });
+</script>
+</body>
+</html>
